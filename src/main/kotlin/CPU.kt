@@ -1,20 +1,27 @@
 class CPU {
     val registers = ByteArray(8)
-    private var programCounter: Int = 0
+    var programCounter: Int = 0
     private val timer = Timer()
     private val instructions: Map<Byte, Instruction>
 
     init {
         val cpu = this
         instructions = mapOf(
-            0x00.toByte() to StoreInstruction(cpu),
-            0x10.toByte() to AddInstruction(cpu)
+            0x60.toByte() to StoreInstruction(cpu),
+            0x10.toByte() to AddInstruction(cpu),
+            0x20.toByte() to SubInstruction(cpu)
         )
     }
 
+    fun executeNextInstruction() {
+        val byte1 = Memory.readByte(programCounter)
+        val byte2 = Memory.readByte(programCounter + 1)
+        executeInstruction(byte1, byte2)
+        programCounter += 2
+    }
+
     fun executeInstruction(byte1: Byte, byte2: Byte) {
-        val instructionCode = (byte1.toInt() and 0xF0).toByte()
-        val instruction = instructions[instructionCode]
+        val instruction = instructions[byte1]
         instruction?.execute(byte1, byte2)
     }
 }

@@ -6,15 +6,19 @@ object Memory {
         bytes.copyInto(rom)
     }
 
-    fun read(address: Int): Byte {
-        return if (address < 4096) ram[address] else rom[address - 4096]
+    fun readByte(address: Int): Byte {
+        return if (address < rom.size) {
+            rom[address]
+        } else {
+            ram[address - rom.size]
+        }
     }
 
-    fun write(address: Int, value: Byte) {
-        if (address < 4096) {
-            ram[address] = value
+    fun writeByte(address: Int, value: Byte) {
+        if (address < rom.size) {
+            println("Attempt to write to ROM. Ignored.")
         } else {
-            println("Attempt to write to ROM address $address")
+            ram[address - rom.size] = value
         }
     }
 }
