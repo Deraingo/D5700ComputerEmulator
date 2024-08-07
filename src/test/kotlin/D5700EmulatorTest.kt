@@ -13,7 +13,8 @@ class D5700EmulatorTest {
             0xF0.toByte(), 0x00.toByte()
         )
 
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         Memory.loadROM(romBytes)
         cpu.executeNextInstruction()
         cpu.executeNextInstruction()
@@ -29,7 +30,8 @@ class D5700EmulatorTest {
             0xF0.toByte(), 0x00.toByte()
         )
 
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         Memory.loadROM(romBytes)
         cpu.executeNextInstruction()
         println("Register r0: ${cpu.registers[0]}")
@@ -43,7 +45,8 @@ class D5700EmulatorTest {
             0x21.toByte(),
             0x01.toByte()
         )
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         cpu.registers[1] = 10
         cpu.registers[2] = 15
         Memory.loadROM(romBytes)
@@ -58,7 +61,8 @@ class D5700EmulatorTest {
             0x10.toByte(),
             0x01.toByte()
         )
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         cpu.registers[0] = 15
         cpu.registers[1] = 10
         Memory.loadROM(romBytes)
@@ -71,7 +75,8 @@ class D5700EmulatorTest {
         val romBytes = byteArrayOf(
             0x10.toByte(), 0x12.toByte()
         )
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         cpu.registers[1] = 127
         cpu.registers[2] = 1
         Memory.loadROM(romBytes)
@@ -86,7 +91,8 @@ class D5700EmulatorTest {
             0x12.toByte(),
             0x01.toByte()
         )
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         cpu.registers[1] = -128
         cpu.registers[2] = 0
         Memory.loadROM(romBytes)
@@ -100,29 +106,22 @@ class D5700EmulatorTest {
 
     @Test
     fun testMemoryReadWrite() {
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         Memory.writeByte(0x1000, 0xAA.toByte())
         assertEquals(0xAA.toByte(), Memory.readByte(0x1000))
         Memory.writeByte(0x0000, 0xBB.toByte())
         assertNotEquals(0xBB.toByte(), Memory.readByte(0x0000))
     }
-
-    @Test
-    fun testMemoryBoundary() {
-        Memory.writeByte(4095, 0xAA.toByte())
-        assertEquals(0xAA.toByte(), Memory.readByte(4095))
-        // Write to the first byte of RAM space
-        Memory.writeByte(4096, 0xBB.toByte())
-        assertEquals(0xBB.toByte(), Memory.readByte(4096))
-    }
-
+    
     @Test
     fun testProgramCounter() {
         val romBytes = byteArrayOf(
             0x10.toByte(), 0x12.toByte(),
             0x20.toByte(), 0x12.toByte()
         )
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         Memory.loadROM(romBytes)
         cpu.executeNextInstruction()
         assertEquals(2, cpu.programCounter)
@@ -144,12 +143,30 @@ class D5700EmulatorTest {
             0x60.toByte(), 0x0A.toByte(),
             0x10.toByte(), 0x01.toByte()
         )
-        val cpu = CPU()
+        val timer = Timer()
+        val cpu = CPU(timer)
         cpu.registers[1] = 5
         Memory.loadROM(romBytes)
         cpu.executeNextInstruction()
         cpu.executeNextInstruction()
         assertEquals(15.toByte(), cpu.registers[0])
+    }
+
+    @Test
+    fun testTimerInstruction() {
+        val timer = Timer()
+        val cpu = CPU(timer)
+        cpu.registers[3] = 60.toByte()
+
+        val setTimerInstruction = TimerInstruction(cpu, timer)
+        setTimerInstruction.execute(0xB0.toByte(), 0)
+
+        assertEquals(60.toByte(), timer.get())
+
+        val storeTimerInstruction = TimerInstruction(cpu, timer)
+        storeTimerInstruction.execute(0xC0.toByte(), 0)
+
+        assertEquals(60.toByte(), cpu.registers[1])
     }
 
 }

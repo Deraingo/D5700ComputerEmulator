@@ -16,7 +16,7 @@ object Memory {
 
     fun writeByte(address: Int, value: Byte) {
         if (address < rom.size) {
-            println("Attempt to write to ROM. Ignored.")
+            println("Attempt to write to ROM at address $address. Ignored.")
         } else {
             ram[address - rom.size] = value
         }
